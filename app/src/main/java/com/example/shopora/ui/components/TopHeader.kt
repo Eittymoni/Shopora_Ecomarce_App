@@ -1,6 +1,7 @@
 package com.example.shopora.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,6 +32,11 @@ import com.example.shopora.ui.theme.ShoporaPrimary
 
 @Composable
 fun TopHeader(
+    cartCount: Int = 3,
+    onSearchClicked: () -> Unit = {},
+    onNotificationsClicked: () -> Unit = {},
+    onCartClicked: () -> Unit = {},
+    onProfileClicked: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -81,7 +87,7 @@ fun TopHeader(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            IconButton(onClick = { }) {
+            IconButton(onClick = onSearchClicked) {
                 Icon(
                     imageVector = ShoporaIcons.Search,
                     contentDescription = "Search",
@@ -91,7 +97,7 @@ fun TopHeader(
             }
 
             // Notification Bell with badge '0'
-            IconButton(onClick = { }) {
+            IconButton(onClick = onNotificationsClicked) {
                 BadgedBox(
                     badge = {
                         Badge(
@@ -111,15 +117,17 @@ fun TopHeader(
                 }
             }
 
-            // Cart with badge '3'
-            IconButton(onClick = { }) {
+            // Cart with badge
+            IconButton(onClick = onCartClicked) {
                 BadgedBox(
                     badge = {
-                        Badge(
-                            containerColor = ShoporaCoral,
-                            contentColor = Color.White
-                        ) {
-                            Text(text = "3", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        if (cartCount > 0) {
+                            Badge(
+                                containerColor = ShoporaCoral,
+                                contentColor = Color.White
+                            ) {
+                                Text(text = "$cartCount", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
                     }
                 ) {
@@ -137,7 +145,8 @@ fun TopHeader(
                 modifier = Modifier
                     .size(36.dp)
                     .clip(CircleShape)
-                    .background(ShoporaCoral),
+                    .background(ShoporaCoral)
+                    .clickable { onProfileClicked() },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(

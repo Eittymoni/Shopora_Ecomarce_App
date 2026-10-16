@@ -2,6 +2,7 @@ package com.example.shopora.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,40 +27,32 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.shopora.data.model.Category
 import com.example.shopora.ui.icons.ShoporaIcons
 import com.example.shopora.ui.theme.ShoporaCoral
 
-data class CategoryItem(
-    val id: String,
-    val name: String,
-    val imageUrl: String? = null,
-    val isDeals: Boolean = false,
-    val isSelected: Boolean = false
-)
-
 val sampleCategories = listOf(
-    CategoryItem(
+    Category(
         id = "deals",
         name = "Deals",
-        isDeals = true,
-        isSelected = true
+        isDeals = true
     ),
-    CategoryItem(
+    Category(
         id = "fashion",
         name = "Fashion",
         imageUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&q=80"
     ),
-    CategoryItem(
+    Category(
         id = "beauty",
         name = "Beauty",
         imageUrl = "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&q=80"
     ),
-    CategoryItem(
+    Category(
         id = "electronics",
         name = "Electronics",
         imageUrl = "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&q=80"
     ),
-    CategoryItem(
+    Category(
         id = "home",
         name = "Home",
         imageUrl = "https://images.unsplash.com/photo-1581783342308-f792dbdd27c5?w=300&q=80"
@@ -68,7 +61,9 @@ val sampleCategories = listOf(
 
 @Composable
 fun CategorySection(
-    categories: List<CategoryItem> = sampleCategories,
+    categories: List<Category> = sampleCategories,
+    selectedCategoryId: String = "deals",
+    onCategorySelected: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     LazyRow(
@@ -77,17 +72,24 @@ fun CategorySection(
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(categories) { category ->
-            CategoryCircleItem(category = category)
+            CategoryCircleItem(
+                category = category,
+                isSelected = category.id == selectedCategoryId,
+                onCategorySelected = { onCategorySelected(category.id) }
+            )
         }
     }
 }
 
 @Composable
 fun CategoryCircleItem(
-    category: CategoryItem
+    category: Category,
+    isSelected: Boolean = false,
+    onCategorySelected: () -> Unit = {}
 ) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable { onCategorySelected() }
     ) {
         Box(
             modifier = Modifier.size(68.dp),
@@ -153,8 +155,8 @@ fun CategoryCircleItem(
         Text(
             text = category.name,
             fontSize = 12.sp,
-            fontWeight = if (category.isSelected) FontWeight.Bold else FontWeight.Medium,
-            color = if (category.isSelected) ShoporaCoral else Color.Black
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+            color = if (isSelected) ShoporaCoral else Color.Black
         )
     }
 }

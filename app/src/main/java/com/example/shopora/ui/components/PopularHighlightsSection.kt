@@ -1,6 +1,7 @@
 package com.example.shopora.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,77 +35,74 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.shopora.data.model.Product
 import com.example.shopora.ui.icons.ShoporaIcons
 import com.example.shopora.ui.theme.ShoporaCoral
 import com.example.shopora.ui.theme.ShoporaPrimary
 
-data class ProductItem(
-    val id: String,
-    val title: String,
-    val tag: String,
-    val tagBgColor: Color,
-    val tagTextColor: Color,
-    val rating: String,
-    val reviewCount: String,
-    val price: String,
-    val originalPrice: String,
-    val imageUrl: String
-)
-
 val sampleProducts = listOf(
-    ProductItem(
+    Product(
         id = "p1",
         title = "Everyday Leather...",
+        brand = "Shopora Studio",
+        price = 2850.0,
+        originalPrice = 3600.0,
         tag = "Trending",
-        tagBgColor = Color(0xFFFEE2E2),
-        tagTextColor = Color(0xFF991B1B),
-        rating = "4.9",
-        reviewCount = "184",
-        price = "৳2,850",
-        originalPrice = "৳3,600",
+        tagBgColorHex = 0xFFFEE2E2,
+        tagTextColorHex = 0xFF991B1B,
+        rating = 4.9,
+        reviewCount = 184,
         imageUrl = "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500&q=80"
     ),
-    ProductItem(
+    Product(
         id = "p2",
         title = "Radiance Skincare...",
+        brand = "Lumiere Botanicals",
+        price = 3100.0,
+        originalPrice = 4250.0,
         tag = "Bestseller",
-        tagBgColor = Color(0xFFEDE9FE),
-        tagTextColor = Color(0xFF5B21B6),
-        rating = "4.8",
-        reviewCount = "312",
-        price = "৳3,100",
-        originalPrice = "৳4,250",
+        tagBgColorHex = 0xFFEDE9FE,
+        tagTextColorHex = 0xFF5B21B6,
+        rating = 4.8,
+        reviewCount = 312,
         imageUrl = "https://images.unsplash.com/photo-1608248597379-e263dcf8c078?w=500&q=80"
     ),
-    ProductItem(
+    Product(
         id = "p3",
         title = "Classic Timepiece...",
+        brand = "Kronos Geneve",
+        price = 3950.0,
+        originalPrice = 5200.0,
         tag = "Premium",
-        tagBgColor = Color(0xFFFEF3C7),
-        tagTextColor = Color(0xFF92400E),
-        rating = "5.0",
-        reviewCount = "96",
-        price = "৳3,950",
-        originalPrice = "৳5,200",
+        tagBgColorHex = 0xFFFEF3C7,
+        tagTextColorHex = 0xFF92400E,
+        rating = 5.0,
+        reviewCount = 96,
         imageUrl = "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=500&q=80"
     ),
-    ProductItem(
+    Product(
         id = "p4",
         title = "Wabi Ceramic Mug...",
+        brand = "Artisan Clay",
+        price = 1200.0,
+        originalPrice = 1750.0,
         tag = "Handmade",
-        tagBgColor = Color(0xFFFFE4E6),
-        tagTextColor = Color(0xFF9F1239),
-        rating = "4.7",
-        reviewCount = "74",
-        price = "৳1,200",
-        originalPrice = "৳1,750",
+        tagBgColorHex = 0xFFFFE4E6,
+        tagTextColorHex = 0xFF9F1239,
+        rating = 4.7,
+        reviewCount = 74,
         imageUrl = "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500&q=80"
     )
 )
 
 @Composable
 fun PopularHighlightsSection(
-    products: List<ProductItem> = sampleProducts,
+    products: List<Product> = sampleProducts,
+    wishlistIds: Set<String> = emptySet(),
+    onProductClicked: (Product) -> Unit = {},
+    onAddToCartClicked: (Product) -> Unit = {},
+    onToggleWishlistClicked: (Product) -> Unit = {},
+    onViewAllClicked: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -133,7 +131,7 @@ fun PopularHighlightsSection(
             }
 
             TextButton(
-                onClick = { },
+                onClick = onViewAllClicked,
                 contentPadding = PaddingValues(0.dp)
             ) {
                 Text(
@@ -167,7 +165,13 @@ fun PopularHighlightsSection(
                         Box(
                             modifier = Modifier.weight(1f)
                         ) {
-                            ProductCard(product = product)
+                            ProductCard(
+                                product = product,
+                                isWishlisted = wishlistIds.contains(product.id),
+                                onProductClicked = { onProductClicked(product) },
+                                onAddToCartClicked = { onAddToCartClicked(product) },
+                                onToggleWishlistClicked = { onToggleWishlistClicked(product) }
+                            )
                         }
                     }
                     if (rowProducts.size == 1) {
@@ -180,11 +184,18 @@ fun PopularHighlightsSection(
 }
 
 @Composable
-fun ProductCard(product: ProductItem) {
+fun ProductCard(
+    product: Product,
+    isWishlisted: Boolean = false,
+    onProductClicked: () -> Unit = {},
+    onAddToCartClicked: () -> Unit = {},
+    onToggleWishlistClicked: () -> Unit = {}
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp)),
+            .clip(RoundedCornerShape(18.dp))
+            .clickable { onProductClicked() },
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
@@ -207,19 +218,21 @@ fun ProductCard(product: ProductItem) {
                 )
 
                 // Tag Badge (Top Left)
-                Box(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(product.tagBgColor)
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Text(
-                        text = product.tag,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = product.tagTextColor
-                    )
+                if (product.tag.isNotEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color(product.tagBgColorHex))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = product.tag,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(product.tagTextColorHex)
+                        )
+                    }
                 }
 
                 // Heart Favorite Button (Top Right)
@@ -233,13 +246,13 @@ fun ProductCard(product: ProductItem) {
                     contentAlignment = Alignment.Center
                 ) {
                     IconButton(
-                        onClick = { },
+                        onClick = onToggleWishlistClicked,
                         modifier = Modifier.size(20.dp)
                     ) {
                         Icon(
                             imageVector = ShoporaIcons.FavoriteBorder,
                             contentDescription = "Favorite",
-                            tint = Color.Black,
+                            tint = if (isWishlisted) ShoporaCoral else Color.Black,
                             modifier = Modifier.size(16.dp)
                         )
                     }
@@ -260,7 +273,7 @@ fun ProductCard(product: ProductItem) {
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = product.rating,
+                    text = "${product.rating}",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
@@ -293,13 +306,13 @@ fun ProductCard(product: ProductItem) {
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Text(
-                    text = product.price,
+                    text = product.formattedPrice,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = ShoporaPrimary
                 )
                 Text(
-                    text = product.originalPrice,
+                    text = product.formattedOriginalPrice,
                     fontSize = 11.sp,
                     color = Color.Gray,
                     textDecoration = TextDecoration.LineThrough
@@ -310,7 +323,7 @@ fun ProductCard(product: ProductItem) {
 
             // Add to Cart Button
             Button(
-                onClick = { },
+                onClick = onAddToCartClicked,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(36.dp),

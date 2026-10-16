@@ -2,6 +2,7 @@ package com.example.shopora.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,52 +37,45 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.shopora.data.model.Product
 import com.example.shopora.ui.icons.ShoporaIcons
 import com.example.shopora.ui.theme.DiscountBadgeText
 import com.example.shopora.ui.theme.DiscountBadgeYellow
 import com.example.shopora.ui.theme.ShoporaCoral
 import com.example.shopora.ui.theme.ShoporaPrimary
 
-data class FlashSaleItem(
-    val id: String,
-    val title: String,
-    val brand: String,
-    val price: String,
-    val originalPrice: String,
-    val discountPercent: String,
-    val soldPercentage: Float,
-    val itemsLeftText: String,
-    val imageUrl: String
-)
-
 val sampleFlashSaleItems = listOf(
-    FlashSaleItem(
-        id = "1",
+    Product(
+        id = "flash-1",
         title = "Wireless ANC Studio Pro",
         brand = "Audio Tech",
-        price = "৳3,450",
-        originalPrice = "৳4,990",
+        price = 3450.0,
+        originalPrice = 4990.0,
         discountPercent = "-30%",
         soldPercentage = 0.82f,
-        itemsLeftText = "Only 6 left",
-        imageUrl = "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=500&q=80"
+        stockLeftText = "Only 6 left",
+        imageUrl = "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=500&q=80",
+        isFlashSale = true
     ),
-    FlashSaleItem(
-        id = "2",
+    Product(
+        id = "flash-2",
         title = "Aura Glow Desk Lamp",
         brand = "Home Living",
-        price = "৳1,890",
-        originalPrice = "৳3,400",
+        price = 1890.0,
+        originalPrice = 3400.0,
         discountPercent = "-45%",
         soldPercentage = 0.91f,
-        itemsLeftText = "Only 3 left",
-        imageUrl = "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=500&q=80"
+        stockLeftText = "Only 3 left",
+        imageUrl = "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=500&q=80",
+        isFlashSale = true
     )
 )
 
 @Composable
 fun FlashSaleSection(
-    items: List<FlashSaleItem> = sampleFlashSaleItems,
+    items: List<Product> = sampleFlashSaleItems,
+    onProductClicked: (Product) -> Unit = {},
+    onAddToCartClicked: (Product) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -147,7 +141,11 @@ fun FlashSaleSection(
             horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             items(items) { item ->
-                FlashSaleCard(item = item)
+                FlashSaleCard(
+                    item = item,
+                    onProductClicked = { onProductClicked(item) },
+                    onAddToCartClicked = { onAddToCartClicked(item) }
+                )
             }
         }
     }
@@ -173,11 +171,16 @@ fun CountdownBox(number: String) {
 }
 
 @Composable
-fun FlashSaleCard(item: FlashSaleItem) {
+fun FlashSaleCard(
+    item: Product,
+    onProductClicked: () -> Unit = {},
+    onAddToCartClicked: () -> Unit = {}
+) {
     Card(
         modifier = Modifier
             .width(220.dp)
-            .clip(RoundedCornerShape(18.dp)),
+            .clip(RoundedCornerShape(18.dp))
+            .clickable { onProductClicked() },
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
@@ -200,19 +203,21 @@ fun FlashSaleCard(item: FlashSaleItem) {
                 )
 
                 // Discount Tag
-                Box(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(DiscountBadgeYellow)
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Text(
-                        text = item.discountPercent,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = DiscountBadgeText
-                    )
+                if (item.discountPercent.isNotEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(DiscountBadgeYellow)
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = item.discountPercent,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = DiscountBadgeText
+                        )
+                    }
                 }
             }
 
@@ -245,13 +250,13 @@ fun FlashSaleCard(item: FlashSaleItem) {
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Text(
-                    text = item.price,
+                    text = item.formattedPrice,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = ShoporaPrimary
                 )
                 Text(
-                    text = item.originalPrice,
+                    text = item.formattedOriginalPrice,
                     fontSize = 12.sp,
                     color = Color.Gray,
                     textDecoration = TextDecoration.LineThrough
@@ -272,7 +277,7 @@ fun FlashSaleCard(item: FlashSaleItem) {
                         color = Color.Gray
                     )
                     Text(
-                        text = item.itemsLeftText,
+                        text = item.stockLeftText,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFFDC2626)
@@ -296,7 +301,7 @@ fun FlashSaleCard(item: FlashSaleItem) {
 
             // Button: Grab Deal
             Button(
-                onClick = { },
+                onClick = onAddToCartClicked,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(38.dp),
